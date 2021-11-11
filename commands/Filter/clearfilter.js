@@ -1,0 +1,86 @@
+const {
+  MessageEmbed
+} = require(`discord.js`);
+const DBL = require('@top-gg/sdk');
+const config = require(`../../botconfig/config.json`);
+const ee = require(`../../botconfig/embed.json`);
+const emoji = require(`../../botconfig/emojis.json`);
+module.exports = {
+  name: `clearfilter`,
+  category: `Filter`,
+  aliases: [`cf`],
+  description: `Clears the Equalizer`,
+  usage: `clearfilter`,
+  parameters: {"type":"music", "activeplayer": true, "previoussong": false},
+  run: async (client, message, args, guildData, player, prefix) => {
+
+    try {
+      try {
+        const dbl = new DBL.Api("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMTEwOTcxNTQzMzYxOTQ3NiIsImJvdCI6dHJ1ZSwiaWF0IjoxNjM1Mzg5NzkwfQ.myTNdA27ZNTq1a2nLvsESRsFbiuBMEvh9j3eRcTutqA", client);
+        let voted = await dbl.hasVoted(message.author.id);
+        if(!voted) {
+          const vote = new MessageEmbed()
+          .setTitle("Error!")
+          .setFooter(ee.footertext, ee.footericon)
+          .setColor("RED")
+          .setTimestamp()
+          .setDescription(`${emoji.msg.ERROR} you must vote me [here](https://top.gg/bot/${client.user.id}/vote) to use this command\n [**Click Here**](https://top.gg/bot/${client.user.id}/vote)`)
+          return message.channel.send({embeds: [vote]});
+        }
+      } catch {/** */}
+      player.clearEQ();
+      player.node.send({
+        op: "filters",
+        guildId: message.guild.id,
+        equalizer: player.bands.map((gain, index) => {
+            var Obj = {
+              "band": 0,
+              "gain": 0,
+            };
+            Obj.band = Number(index);
+            Obj.gain = Number(gain)
+            return Obj;
+          }),
+      });
+      const isdfr = new MessageEmbed()
+      .setColor("#2F3136")
+      .setDescription(`Note: **It might take up to 5 seconds to reset all filters**`);
+      return message.channel.send({embeds: [isdfr]});
+    } catch (e) {
+      console.log(String(e.stack).bgRed)
+      const emesdf = new MessageEmbed()
+      .setColor(ee.wrongcolor)
+      .setAuthor(`An Error Occurred`)
+      .setDescription(`\`\`\`${e.message}\`\`\``);
+      return message.channel.send({embeds: [emesdf]})
+    }
+  },
+  runslash: async (client, interaction, guildData, player, prefix) => {
+    try {
+      player.clearEQ();
+      player.node.send({
+        op: "filters",
+        guildId: interaction.guild.id,
+        equalizer: player.bands.map((gain, index) => {
+            var Obj = {
+              "band": 0,
+              "gain": 0,
+            };
+            Obj.band = Number(index);
+            Obj.gain = Number(gain)
+            return Obj;
+          }),
+      });
+      const isdfr = new MessageEmbed()
+      .setColor("#2F3136")
+      .setDescription(`Note: **It might take up to 5 seconds to reset all filters**`);
+      return interaction.reply({embeds: [isdfr]});
+    } catch (e) {
+      console.log(String(e.stack).bgRed)
+      const emesdf = new MessageEmbed()
+      .setColor(ee.wrongcolor)
+      .setAuthor(`An Error Occurred`)
+      .setDescription(`\`\`\`${e.interaction}\`\`\``);
+      return interaction.reply({embeds: [emesdf]})}
+  }
+};
